@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face {
+    font-family: 'Tajawal';
+    src: url('../assets/fonts/Tajawal-Regular.ttf') format('truetype');
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: 'Tajawal';
+    src: url('../assets/fonts/Tajawal-Medium.ttf') format('truetype');
+    font-weight: 500;
+  }
+  @font-face {
+    font-family: 'Tajawal';
+    src: url('../assets/fonts/Tajawal-Bold.ttf') format('truetype');
+    font-weight: 700;
+  }
+  @font-face {
+    font-family: 'Tajawal';
+    src: url('../assets/fonts/Tajawal-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: 'Tajawal', sans-serif;
+    background: #0b0d11;
+  }
+
+  .stage {
+    position: relative;
+    width: 1080px;
+    height: 1920px;
+  }
+
+  /* category gradient — always present; sits under the photo when there is one */
+  .bg-css { position: absolute; inset: 0; }
+  .bg-css.geopolitics { background: radial-gradient(120% 90% at 50% 20%, #12325e 0%, #0b1d3a 45%, #060b18 100%); }
+  .bg-css.military    { background: radial-gradient(120% 90% at 50% 20%, #2c3a28 0%, #1a2318 45%, #0a0d09 100%); }
+  .bg-css.economy     { background: radial-gradient(120% 90% at 50% 20%, #1a473f 0%, #0e2a26 45%, #071512 100%); }
+  .bg-css.markets     { background: radial-gradient(120% 90% at 50% 20%, #1f5236 0%, #123020 45%, #08130c 100%); }
+  .bg-css.disaster    { background: radial-gradient(120% 90% at 50% 20%, #55251a 0%, #33150f 45%, #140705 100%); }
+  .bg-css.politics    { background: radial-gradient(120% 90% at 50% 20%, #3a2660 0%, #221636 45%, #0d0817 100%); }
+  .bg-css.sports      { background: radial-gradient(120% 90% at 50% 20%, #16395c 0%, #0e2135 45%, #071019 100%); }
+  .bg-css.other       { background: radial-gradient(120% 90% at 50% 20%, #2d323d 0%, #1c1f26 45%, #0b0d11 100%); }
+  .bg-css::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.016) 0 2px, transparent 2px 14px);
+  }
+
+  .bg-photo {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center 25%; /* keep faces (usually upper-center) clear of the text block */
+    filter: saturate(0.9);
+  }
+
+  /* portrait panels — one face full-bleed, or two split down the middle */
+  .portraits {
+    position: absolute; inset: 0;
+    display: flex;
+  }
+  .portraits img {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 22%; /* heads sit high in the frame, above the text */
+    filter: saturate(0.95);
+  }
+  .portraits img + img {
+    border-left: 3px solid rgba(255,255,255,0.20);
+  }
+  /* flag chips: sharp, intentional, and they show every party to the story */
+  .flags {
+    display: flex;
+    gap: 34px;
+    margin-bottom: 66px;
+  }
+  .flags img {
+    width: 172px;
+    height: 115px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 3px solid rgba(255,255,255,0.55);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+  }
+
+  /* the requested shading over the background */
+  .shade {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(140% 100% at 50% 50%, transparent 40%, rgba(5,7,12,0.55) 100%),
+      linear-gradient(180deg, rgba(5,7,12,0.66) 0%, rgba(5,7,12,0.52) 34%, rgba(5,7,12,0.72) 62%, rgba(5,7,12,0.94) 100%);
+  }
+  /* without a photo there is nothing to shade for legibility — let the category
+     gradient stay visible instead of washing it to near-black */
+  .stage.no-photo .shade {
+    background:
+      radial-gradient(140% 100% at 50% 42%, transparent 45%, rgba(5,7,12,0.42) 100%),
+      linear-gradient(180deg, rgba(5,7,12,0.18) 0%, rgba(5,7,12,0.10) 40%, rgba(5,7,12,0.34) 100%);
+  }
+
+  .layout {
+    position: absolute; inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 120px 90px 300px;
+    text-align: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 26px;
+    background: linear-gradient(180deg, #ef1f33 0%, #c40e20 100%);
+    color: #fff;
+    font-weight: 800;
+    font-size: 92px;
+    line-height: 1;
+    padding: 30px 74px 42px;
+    border-radius: 26px;
+    letter-spacing: 1px;
+    box-shadow: 0 18px 60px rgba(228, 20, 40, 0.45), 0 4px 14px rgba(0,0,0,0.4);
+  }
+  .badge .dot {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 12px rgba(255,255,255,0.22);
+  }
+
+  .headline {
+    margin-top: 80px;
+    color: #f6f7f9;
+    font-weight: 700;
+    max-width: 900px;
+    text-shadow: 0 3px 22px rgba(0,0,0,0.75);
+  }
+
+  .rule {
+    margin-top: 84px;
+    width: 132px;
+    height: 7px;
+    border-radius: 4px;
+    background: #ef1f33;
+  }
+
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="bg-css other" id="bgCss"></div>
+    <img class="bg-photo" id="bgPhoto" alt="" style="display:none">
+    <div class="portraits" id="portraits"></div>
+    <div class="shade"></div>
+    <div class="layout">
+      <div class="flags" id="flags"></div>
+      <div class="badge"><span class="dot"></span><span>عاجل</span></div>
+      <div class="headline" id="headline"></div>
+      <div class="rule"></div>
+    </div>
+  </div>
+
+  <script>
+    const data = __DATA__;
+
+    document.getElementById('bgCss').className = 'bg-css ' + (data.category || 'other');
+
+    const portraitFiles = data.portraitFiles || [];
+    for (const file of portraitFiles) {
+      const panel = document.createElement('img');
+      panel.src = file;
+      document.getElementById('portraits').appendChild(panel);
+    }
+
+    if (data.bgFile) {
+      const img = document.getElementById('bgPhoto');
+      img.style.display = 'block';
+      img.src = data.bgFile; // participates in window 'load', so the screenshot waits for it
+      img.onerror = () => { img.style.display = 'none'; };
+    } else if (!portraitFiles.length) {
+      document.querySelector('.stage').classList.add('no-photo');
+    }
+
+    for (const file of data.flagFiles || []) {
+      const chip = document.createElement('img');
+      chip.src = file;
+      document.getElementById('flags').appendChild(chip);
+    }
+
+    const h = document.getElementById('headline');
+    h.textContent = data.arabicText;
+    const len = data.arabicText.length;
+    const size = len <= 80 ? 68 : len <= 140 ? 60 : len <= 220 ? 52 : 44;
+    h.style.fontSize = size + 'px';
+    h.style.lineHeight = '1.62';
+
+  </script>
+</body>
+</html>

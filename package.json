@@ -1,0 +1,19 @@
+{
+  "name": "ajel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "عاجل — Arabic breaking-news Snapchat automation (The Spectator Index → translated story → Snapchat)",
+  "type": "module",
+  "scripts": {
+    "once": "node src/index.js",
+    "scrape": "node src/scrape.js",
+    "install-agent": "bash launchd/install.sh",
+    "uninstall-agent": "launchctl unload ~/Library/LaunchAgents/com.salem.ajel.plist && rm ~/Library/LaunchAgents/com.salem.ajel.plist"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
+    "cheerio": "^1.2.0",
+    "dotenv": "^17.4.2",
+    "playwright": "^1.62.1"
+  }
+}

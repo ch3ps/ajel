@@ -1,0 +1,63 @@
+name: Ajel breaking-news bot
+
+on:
+  schedule:
+    # Every 30 minutes. GitHub's scheduler is best-effort and often runs late;
+    # a tighter cadence would also exceed the 2,000 free Actions minutes/month
+    # for a private repo.
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # lets you trigger a run by hand from the Actions tab
+
+# Never let two runs post at the same time — they would each see stale state
+# and could publish the same story twice.
+concurrency:
+  group: ajel-pipeline
+  cancel-in-progress: false
+
+permissions:
+  contents: write # to commit state.json back, so posts aren't repeated
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: Run pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AYRSHARE_API_KEY: ${{ secrets.AYRSHARE_API_KEY }}
+          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_CONTAINER: ${{ secrets.AZURE_CONTAINER }}
+          AZURE_WRITE_SAS: ${{ secrets.AZURE_WRITE_SAS }}
+          AZURE_READ_SAS: ${{ secrets.AZURE_READ_SAS }}
+          DRY_RUN: '0'
+        run: node src/index.js
+
+      - name: Persist state
+        if: always()
+        run: |
+          if [[ -n "$(git status --porcelain state.json)" ]]; then
+            git config user.name 'ajel-bot'
+            git config user.email 'actions@users.noreply.github.com'
+            git add state.json
+            git commit -m "state: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git pull --rebase --autostash
+            git push
+          fi

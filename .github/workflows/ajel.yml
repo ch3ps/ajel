@@ -2,10 +2,11 @@ name: Ajel breaking-news bot
 
 on:
   schedule:
-    # Every 30 minutes. GitHub's scheduler is best-effort and often runs late;
-    # a tighter cadence would also exceed the 2,000 free Actions minutes/month
-    # for a private repo.
-    - cron: '*/30 * * * *'
+    # Every 5 minutes — GitHub's floor for scheduled workflows. Affordable only
+    # because this repo is public (public repos get unlimited Actions minutes).
+    # The scheduler is still best-effort and runs late under load, especially
+    # on the hour.
+    - cron: '*/5 * * * *'
   workflow_dispatch: # lets you trigger a run by hand from the Actions tab
 
 # Never let two runs post at the same time — they would each see stale state

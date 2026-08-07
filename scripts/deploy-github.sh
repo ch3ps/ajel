@@ -23,20 +23,21 @@ done
 
 if gh repo view "$REPO" >/dev/null 2>&1; then
   echo "Repo $REPO already exists — pushing to it."
-  git remote get-url origin >/dev/null 2>&1 || gh repo set-default "$REPO" >/dev/null 2>&1 || true
 else
   echo "Creating private repo: $REPO"
   gh repo create "$REPO" --private --source=. --remote=origin \
     --description "Arabic breaking-news automation: The Spectator Index to Snapchat"
 fi
 
-echo "Uploading secrets…"
-gh secret set ANTHROPIC_API_KEY     --repo "$REPO" --body "$ANTHROPIC_API_KEY"
-gh secret set AYRSHARE_API_KEY      --repo "$REPO" --body "$AYRSHARE_API_KEY"
-gh secret set AZURE_STORAGE_ACCOUNT --repo "$REPO" --body "$AZURE_STORAGE_ACCOUNT"
-gh secret set AZURE_CONTAINER       --repo "$REPO" --body "${AZURE_CONTAINER:-ajel-media}"
-gh secret set AZURE_WRITE_SAS       --repo "$REPO" --body "$AZURE_WRITE_SAS"
-gh secret set AZURE_READ_SAS        --repo "$REPO" --body "$AZURE_READ_SAS"
+# `gh secret set` needs the fully-qualified OWNER/REPO, not the bare name.
+REPO_FULL="$(gh repo view "$REPO" --json nameWithOwner -q .nameWithOwner)"
+echo "Uploading secrets to $REPO_FULL…"
+gh secret set ANTHROPIC_API_KEY     --repo "$REPO_FULL" --body "$ANTHROPIC_API_KEY"
+gh secret set AYRSHARE_API_KEY      --repo "$REPO_FULL" --body "$AYRSHARE_API_KEY"
+gh secret set AZURE_STORAGE_ACCOUNT --repo "$REPO_FULL" --body "$AZURE_STORAGE_ACCOUNT"
+gh secret set AZURE_CONTAINER       --repo "$REPO_FULL" --body "${AZURE_CONTAINER:-ajel-media}"
+gh secret set AZURE_WRITE_SAS       --repo "$REPO_FULL" --body "$AZURE_WRITE_SAS"
+gh secret set AZURE_READ_SAS        --repo "$REPO_FULL" --body "$AZURE_READ_SAS"
 
 git push -u origin HEAD
 

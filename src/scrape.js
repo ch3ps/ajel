@@ -61,7 +61,13 @@ export async function fetchPosts() {
     const href = $el.attr('href') || '';
     const id = href.split('/').pop();
     if (!id) return;
-    const text = content.text().replace(/\s+/g, ' ').trim();
+    // The feed appends t.co tracking links; they add nothing for a translated
+    // card and only confuse the model.
+    const text = content
+      .text()
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
     const timeText = $el.find('.postime').first().text().trim();
     const postedAt = timeText ? new Date(timeText) : null;
     posts.push({

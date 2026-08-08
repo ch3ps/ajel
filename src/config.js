@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
@@ -28,6 +29,11 @@ export const config = {
   templatePath: path.join(ROOT, 'template', 'story.html'),
   statePath: path.join(ROOT, 'state.json'),
 };
+
+// work/ is gitignored, so on a fresh CI checkout it does not exist. Every image
+// download used to fail with ENOENT there and silently degrade to the plain
+// gradient — create it up front, before anything writes into it.
+fs.mkdirSync(config.workDir, { recursive: true });
 
 export function log(event, extra = {}) {
   console.log(JSON.stringify({ ts: new Date().toISOString(), event, ...extra }));

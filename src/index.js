@@ -1,7 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { config, log } from './config.js';
-import { loadState, saveState, markSeen, minutesSinceLastPost } from './state.js';
+import {
+  loadState,
+  saveState,
+  markSeen,
+  minutesSinceLastPost,
+  recordFailure,
+  clearFailure,
+} from './state.js';
+
+const MAX_ATTEMPTS_PER_POST = 3;
 import { fetchPosts, breakingOnly, isFresh } from './scrape.js';
 import { analyzePost } from './analyze.js';
 import { pickBackground } from './image.js';
@@ -38,8 +47,24 @@ async function main() {
   }
 
   const post = candidates[0]; // newest first
-  log('pipeline.start', { id: post.id, text: post.text });
+  log('pipeline.start', { id: post.id, text: post.text, attempt: (state.failures[post.id] || 0) + 1 });
 
+  try {
+    await publish(post, state);
+    clearFailure(state, post.id);
+  } catch (err) {
+    const attempts = recordFailure(state, post.id);
+    if (attempts >= MAX_ATTEMPTS_PER_POST) {
+      // Give up on this item so it stops blocking newer stories.
+      markSeen(state, post.id);
+      log('pipeline.gave_up', { id: post.id, attempts });
+    }
+    saveState(state);
+    throw err;
+  }
+}
+
+async function publish(post, state) {
   const analysis = await analyzePost(post.text);
   if (analysis.refused) {
     // Safety classifiers declined this item — skip it permanently and move on.
